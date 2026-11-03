@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trees do not have social media | MMV13</title>
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <style>
+    :root {
+      --bg: #FAFAF8;
+      --card-bg: #FFFFFF;
+      --accent-green: #2B5329;
+      --accent-blue: #1E6B7B;
+      --text: #222222;
+      --muted: #666666;
+      --border: #E5E5DF;
+      --linen: #EFECE6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 1.5rem 1rem 4rem 1rem;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+
+    .badge {
+      display: inline-block;
+      background: var(--linen);
+      color: var(--accent-green);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.3rem 0.75rem;
+      border-radius: 20px;
+      margin-bottom: 0.75rem;
+    }
+
+    h1 {
+      font-size: 1.85rem;
+      line-height: 1.25;
+      color: #111;
+      margin-bottom: 0.4rem;
+    }
+
+    h2.subtitle {
+      font-size: 1.05rem;
+      font-weight: 400;
+      color: var(--muted);
+      margin-bottom: 1.2rem;
+    }
+
+    .authors {
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-top: 1px solid var(--border);
+      padding-top: 0.9rem;
+    }
+
+    .affiliations {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-top: 1.2rem;
+    }
+
+    .btn {
+      display: inline-block;
+      background: var(--accent-blue);
+      color: #fff;
+      text-decoration: none;
+      padding: 0.55rem 1.1rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+
+    .btn.outline {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn:hover { opacity: 0.85; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+
+    .card h3 {
+      font-size: 1.25rem;
+      color: var(--accent-green);
+      margin-bottom: 0.4rem;
+    }
+
+    .card-description {
+      font-size: 0.92rem;
+      color: var(--muted);
+      margin-bottom: 1.2rem;
+    }
+
+    /* --- INTERACTIVE MAP WIDGET CONTAINER --- */
+    #interactive-app-wrapper {
+      display: flex;
+      height: 600px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f4f4f4;
+    }
+
+    #map-container {
+      flex: 7;
+      height: 100%;
+      position: relative;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      background: #e5e5e5;
+    }
+
+    #sidebar {
+      flex: 3;
+      min-width: 280px;
+      height: 100%;
+      background: #fff;
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tab-buttons {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: #f8f9fa;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .tab-btn:hover { background: #eee; }
+    .tab-btn.active {
+      background: #fff;
+      border-bottom: 3px solid var(--accent-green);
+      color: var(--accent-green);
+    }
+
+    .tab-content {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: none;
+    }
+
+    .tab-content.active { display: block; }
+
+    .tab-content h2 {
+      margin-top: 0;
+      font-size: 1.05rem;
+      color: var(--text);
+      margin-bottom: 0.75rem;
+    }
+
+    .tab-content h4 {
+      margin: 0 0 5px 0;
+      font-size: 1.02rem;
+      color: #111;
+      line-height: 1.3;
+    }
+
+    .ref-meta {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .highlight-data {
+      background: #F0F7F4;
+      border-left: 3px solid var(--accent-green);
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 0.83rem;
+    }
+
+    .highlight-data p {
+      margin-bottom: 6px;
+      line-height: 1.35;
+    }
+
+    .highlight-data p:last-child { margin-bottom: 0; }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+    }
+
+    .legend-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+
+    .filter-section {
+      margin-top: 15px;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+    }
+
+    .toggle-row input { margin-right: 8px; cursor: pointer; }
+
+    /* Glyphs */
+    .glyph-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      transition: transform 0.2s;
+    }
+
+    .glyph-wrapper:hover {
+      transform: scale(1.2);
+      z-index: 1000 !important;
+    }
+
+    .glyph-ring {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-left: -4px;
+      margin-top: -4px;
+    }
+
+    .ring-se-combined { border: 2.5px dashed #27ae60; }
+    .ring-none { border: 2.5px solid transparent; }
+
+    /* --- REFERENCES & CORPUS --- */
+    ul.ref-list {
+      list-style-type: none;
+    }
+
+    ul.ref-list li {
+      padding: 0.65rem 0;
+      border-bottom: 1px solid #F0F0EC;
+      font-size: 0.88rem;
+    }
+
+    ul.ref-list li:last-child { border-bottom: none; }
+
+    .status-box {
+      background: #F0F7F4;
+      border-left: 4px solid var(--accent-green);
+      padding: 0.85rem 1rem;
+      border-radius: 4px;
+      font-size: 0.88rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Stack on mobile displays */
+    @media (max-width: 768px) {
+      #interactive-app-wrapper {
+        flex-direction: column;
+        height: auto;
+      }
+      #map-container {
+        height: 380px;
+      }
+      #sidebar {
+        height: 340px;
+        border-left: none;
+        border-top: 1px solid var(--border);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <span class="badge">MMV13 Poster Session</span>
+    <h1>Trees do not have social media</h1>
+    <h2 class="subtitle">Towards integrated social and ecological monitoring in outdoor recreation and nature-based tourism</h2>
+    <div class="authors">
+      Coen van Bendegom<sup>*</sup>, Ina Hildeman, Leyi Xu &amp; Meng Xu
+    </div>
+    <div class="affiliations">
+      Mid Sweden University • University of Copenhagen • University of Helsinki <br>
+      <span style="font-size: 0.85rem; color: var(--accent-green); margin-top: 4px; display: inline-block;">
+        *Corresponding author: <a href="mailto:coen.vanbendegom@miun.se" style="color: inherit; text-decoration: underline;">coen.vanbendegom@miun.se</a>
+      </span>
+    </div>
+    <div class="btn-row">
+      <a href="assets/MMV13-poster-vanBendegom-etal.pdf" class="btn" download>Download Poster (PDF)</a>
+      <a href="#interactive-map" class="btn outline">Interactive Map</a>
+      <a href="#poster-refs" class="btn outline">Poster References</a>
+    </div>
+  </header>
+
+  <!-- INTERACTIVE LEAFLET APP CARD -->
+  <section class="card" id="interactive-map">
+    <h3>1. Spatial Distribution of Reviewed Monitoring Studies</h3>
+    <p class="card-description">
+      A first version of the interactive map showing crowdsourced visitor monitoring studies included in the integrative review - only mobile device location data in this version. Colored pie wedges show sources of social (visitor monitoring) data and studies integrating with ecological data are highlighted with a green dashed perimeter ring. Click any item to view study details.
+    </p>
+
+    <div id="interactive-app-wrapper">
+      <div id="map-container">
+        <div id="map"></div>
+      </div>
+
+      <div id="sidebar">
+        <div class="tab-buttons">
+          <button class="tab-btn active" onclick="switchTab('legend')">Legend &amp; Filters</button>
+          <button class="tab-btn" id="btn-ref" onclick="switchTab('references')">Study Detail</button>
+        </div>
+
+        <div id="tab-legend" class="tab-content active">
+          <h2>Data Types</h2>
+          <div class="legend-item"><div class="legend-color" style="background: #3498db;"></div> Social Media</div>
+          <div class="legend-item"><div class="legend-color" style="background: #e67e22;"></div> Mobile device location data </div>
+          <div class="legend-item"><div class="legend-color" style="background: #9b59b6;"></div> PPGIS / Surveys</div>
+          <div class="legend-item"><div class="legend-color" style="background: #f1c40f;"></div> GNSS-based tracking</div>
+          <div class="legend-item"><div class="legend-color" style="background: #95a5a6;"></div> Other Data (Counters, Stats)</div>
+
+          <div class="legend-item" style="margin-top: 14px;">
+            <div class="glyph-ring ring-se-combined" style="width:20px; height:20px; margin-right: 8px;"></div> 
+            Combines Social &amp; Ecological Data
+          </div>
+
+          <div class="filter-section">
+            <h2>Filters</h2>
+            <div class="toggle-row">
+              <input type="checkbox" id="filter-se" onchange="renderMap()"> 
+              <label for="filter-se"><strong>Only show Combined SE (Green Ring)</strong></label>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-references" class="tab-content">
+          <div id="ref-placeholder" style="color: var(--muted); font-style: italic; margin-top: 40%; text-align: center;">
+            Click a glyph on the map to view study details.
+          </div>
+          <div id="ref-content" style="display: none;">
+            <h4 id="ref-title">Title</h4>
+            <p class="ref-meta" id="ref-authors">Authors (Year) • Journal</p>
+            <div class="highlight-data">
+              <p><strong>Social Data:</strong> <span id="ref-social"></span></p>
+              <p><strong>Ecological Data:</strong> <span id="ref-eco"></span></p>
+              <p><strong>Location:</strong> <span id="ref-loc"></span></p>
+              <p><strong>Study ID:</strong> <span id="ref-id"></span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- POSTER REFERENCES -->
+  <section class="card" id="poster-refs">
+    <h3>2. Poster In-Text References</h3>
+    <p class="card-description">Literature cited directly on the MMV13 presentation poster.</p>
+    <ul class="ref-list">
+      <li><strong>Buckley, R. (2011).</strong> Tourism and Environment. <em>Annual Review of Environment and Resources, 36, 397–416.</em> <a href="https://doi.org/10.1146/annurev-environ-041210-132637" class="doi" target="_blank">https://doi.org/10.1146/annurev-environ-041210-132637</a>
+</li>
+      <li><strong>Creany, N., Monz, C. A., & Esser, S. M. (2024).</strong> Understanding visitor attitudes towards the timed-entry reservation system in Rocky Mountain National Park: Contemporary managed access as a social-ecological system. <em>Journal of Outdoor Recreation and Tourism, 45, 100736.</em> https://doi.org/10.1016/j.jort.2024.100736
+</li>
+      <li><strong>Lischka, S. A., Teel, T. L., Johnson, H. E., Reed, S. E., Breck, S., Don Carlos, A., & Crooks, K. R. (2018).</strong> A conceptual model for the integration of social and ecological information to understand human-wildlife interactions. Biological Conservation, 225, 80–87. https://doi.org/10.1016/j.biocon.2018.06.020
+</li>
+      <li><strong>Miller, A. B., Blahna, D. J., Morse, W. C., Leung, Y.-F., & Rowland, M. M. (2022).</strong> From recreation ecology to a recreation ecosystem: A framework accounting for social-ecological systems. Journal of Outdoor Recreation and Tourism, Sustainably Managing Outdoor Recreation and Nature-Based Tourism as Social-Ecological Systems, 38, 100455. https://doi.org/10.1016/j.jort.2021.100455
+</li>
+      <li><strong>Perry, E. E., Thomsen, J. M., D’Antonio, A. L., Morse, W. C., Reigner, N. P., Leung, Y.-F., Wimpey, J., & Taff, B. D. (2020).</strong> Toward an Integrated Model of Topical, Spatial, and Temporal Scales of Research Inquiry in Park Visitor Use Management. Sustainability, 12(15), Article 15. https://doi.org/10.3390/su12156183
+</li>
+      <li><strong>Stronza, A. L., Hunt, C. A., & Fitzgerald, L. A. (2019).</strong> Ecotourism for Conservation? Annual Review of Environment and Resources, 44, 229–253. https://doi.org/10.1146/annurev-environ-101718-033046
+</li>
+      <li><strong>Sumanapala, D., & Wolf, I. D. (2019).</strong> Recreational Ecology: A Review of Research and Gap Analysis. Environments, 6(7), 80–95. https://doi.org/10.3390/environments6070081
+</li>
+    </ul>
+  </section>
+
+<!-- SECTION 3: POSTER DOWNLOAD & CONTACT -->
+  <section class="card" id="poster-download">
+    <h3>3. Poster &amp; Project Contact</h3>
+    <div class="status-box">
+      <strong>Working Paper.</strong> The full integrative review corpus (<em>n</em> = 158) is currently in preparation for publication. You can download the high-resolution poster below or contact the authors directly for (future) collaboration and information requests.
+    </div>
+    <div class="btn-row">
+      <a href="assets/MMV13_Poster_vanBendegom.pdf" class="btn" download>Download Poster (PDF)</a>
+      <a href="mailto:coen.vanbendegom@miun.se?subject=MMV13%20Poster%20Inquiry%20-%20Trees%20do%20not%20have%20social%20media" class="btn outline">Contact Corresponding Author</a>
+    </div>
+  </section>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const rawData = [
+    { id: "PMD1", authors: "Bertocchi, Camatti, van der Borg", title: "Tourism Peaks on the Three Peaks", year: 2021, journal: "Rivista Geografica Italiana", social_data: "Vodafone (Mobile Network Operator)", eco_data: "", combines_SE: "N", loc: "Tre Cime, Dolomites, Italy", lat: 46.6186, lng: 12.3027 },
+    { id: "PMD2", authors: "Baird T. et al.", title: "Mobile Device Data for Parks and Public Lands Transportation Planning", year: 2022, journal: "Transportation Research Record", social_data: "StreetLight (LBS), NPS visitor statistics", eco_data: "", combines_SE: "N", loc: "Colorado, USA", lat: 39.0598, lng: -105.3111 },
+    { id: "PMD3", authors: "Choe Y.; Lee W.; Sim K.-W.", title: "Sustainable Destination Management Using Visitors’ Movements", year: 2023, journal: "Journal of Park and Recreation Administration", social_data: "SKT (Mobile Network Operator)", eco_data: "", combines_SE: "N", loc: "Taeanhaean National Park, ROK", lat: 36.7871, lng: 126.1435 },
+    { id: "PMD4", authors: "Creany N.E. et al.", title: "Estimating trail use and visitor spatial distribution", year: 2021, journal: "Environmental Challenges", social_data: "StreetLight (LBS), trail counters, GPS", eco_data: "", combines_SE: "N", loc: "Orange County, CA, USA", lat: 33.7175, lng: -117.8311 },
+    { id: "PMD5", authors: "Fisher, D.M. et al.", title: "The geographic spread and preferences of tourists revealed by user-generated information", year: 2019, journal: "Land", social_data: "SKT (Mobile Network Operator), Flickr, Twitter, On-site visitor counts", eco_data: "Landscape attributes", combines_SE: "Y", loc: "Jeju Island, ROK", lat: 33.4890, lng: 126.4983 },
+    { id: "PMD6", authors: "Guan C. et al.", title: "Delineating urban park catchment areas using mobile phone data", year: 2020, journal: "Computers, Environment and Urban Systems", social_data: "Konzatsu-Tokei (LBS)", eco_data: "", combines_SE: "N", loc: "Tokyo, Japan", lat: 35.6895, lng: 139.6917 },
+    { id: "PMD7", authors: "Guan, Song, Kieth, Shinbasaki, Sato", title: "Seasonal variations of park visitor volume and park service area in Tokyo", year: 2021, journal: "Urban Forestry and Urban Greening", social_data: "Konzatsu-Tokei (LBS), Jalan (review site)", eco_data: "Vegetation, land cover, topography", combines_SE: "Y", loc: "Tokyo, Japan", lat: 35.7300, lng: 139.7500 },
+    { id: "PMD9", authors: "Jaung, Carrasco", title: "Using mobile phone data to examine weather impacts", year: 2021, journal: "Scientific Reports", social_data: "Singtel Group (Mobile Network Operator)", eco_data: "temperature, rainfall, wind", combines_SE: "Y", loc: "Bukit Timah, Singapore", lat: 1.3483, lng: 103.7766 },
+    { id: "PMD10", authors: "Kim Y.J.; Lee D.K.; Kim C.K.", title: "Spatial tradeoff between biodiversity and nature-based tourism", year: 2020, journal: "Global Ecology and Conservation", social_data: "SKT (Mobile Network Operator)", eco_data: "biodiversity indicators", combines_SE: "Y", loc: "Jeju Island, ROK", lat: 33.3500, lng: 126.5500 },
+    { id: "PMD11", authors: "Kupfer J.A. et al.", title: "Using mobile device data to track the effects of the COVID-19 pandemic", year: 2021, journal: "Sustainability", social_data: "SafeGraph (LBS), NPS visitor statistics", eco_data: "", combines_SE: "N", loc: "Multiple NPs, USA", lat: 39.3209, lng: -111.0937 },
+    { id: "PMD13", authors: "Li, Yang", title: "How important are the park size and shape to a park system’s performance?", year: 2021, journal: "Socio Ecological Practice Research", social_data: "SafeGraph (LBS)", eco_data: "", combines_SE: "N", loc: "Tucson, AZ, USA", lat: 32.2226, lng: -110.9747 },
+    { id: "PMD14", authors: "Liang Y. et al.", title: "Assessing the validity of mobile device data for estimating visitor demographics", year: 2022, journal: "Journal of Environmental Management", social_data: "SafeGraph (LBS), trail counters, NPS visitor statistics, visitor surveys", eco_data: "", combines_SE: "N", loc: "Yellowstone NP, USA", lat: 44.4279, lng: -110.5884 },
+    { id: "PMD15", authors: "Merrill et al.", title: "Using data derived from cellular phone locations to estimate visitation", year: 2020, journal: "Plos One", social_data: "AirSage (LBS - GPS, WiFi & cell-towers), observation, entrance fees", eco_data: "", combines_SE: "N", loc: "New England, USA", lat: 43.9654, lng: -70.8227 },
+    { id: "PMD16", authors: "Minehart K. et al.", title: "The mountains are calling, but will visitors go?", year: 2025, journal: "PLOS Climate", social_data: "StreetLight (LBS)", eco_data: "Air quality, elevation, weather", combines_SE: "Y", loc: "PNW, USA", lat: 45.5000, lng: -118.0000 },
+    { id: "PMD17", authors: "Rout A.; Nesbitt L.", title: "Equity, travel, and park visitation in 10 US metro areas", year: 2024, journal: "Urban Forestry and Urban Greening", social_data: "SafeGraph (LBS), survey (census) data", eco_data: "", combines_SE: "N", loc: "USA (National)", lat: 39.8283, lng: -98.5795 },
+    { id: "PMD18", authors: "Tsai, W.-L. et al.", title: "Using cellular device location data to estimate visitation to public lands", year: 2023, journal: "PLoS ONE", social_data: "AirSage (LBS), NPS visitor statistics", eco_data: "", combines_SE: "N", loc: "USA (National)", lat: 41.0000, lng: -96.0000 },
+    { id: "PMD20", authors: "Winder S.G. et al.", title: "Leveraging digital mobility data to estimate visitation in National Wildlife Refuges", year: 2025, journal: "Journal of Environmental Management", social_data: "AirSage (LBS), Spectus (LBS), AllTrails, Flickr, Instagram, Twitter, eBird, visitor statistics", eco_data: "", combines_SE: "N", loc: "USA (National)", lat: 38.0000, lng: -100.0000 },
+    { id: "PMD21", authors: "Wu Y. et al.", title: "Human health risk-based soil environmental criteria", year: 2022, journal: "Environmental Research", social_data: "Mobile Network Operator", eco_data: "soil quality", combines_SE: "Y", loc: "Beijing, China", lat: 39.9042, lng: 116.4073 }
+  ];
+
+  const categories = {
+    social: { name: 'Social Media', color: '#3498db', keywords: ['flickr', 'twitter', 'instagram', 'jalan'] },
+    pmd: { name: 'Mobile device location data', color: '#e67e22', keywords: ['mobile network operator', 'passive mobile data', 'lbs', 'mobile', 'safegraph', 'streetlight', 'vodafone', 'skt', 'airsage', 'spectus', 'singtel', 'konzatsu'] },
+    ppgis: { name: 'PPGIS / Surveys', color: '#9b59b6', keywords: ['survey', 'ppgis'] },
+    gnss: { name: 'GNSS', color: '#f1c40f', keywords: ['gps', 'gnss', 'alltrails', 'ebird'] },
+    other: { name: 'Other', color: '#95a5a6', keywords: ['nps', 'counter', 'observation', 'entrance fees', 'visitor statistics', 'counts'] }
+  };
+
+  function parseDataTypes(text) {
+    let textLower = text.toLowerCase();
+    let found = [];
+    for (const [key, data] of Object.entries(categories)) {
+      if (data.keywords.some(kw => textLower.includes(kw))) {
+        found.push(data.color);
+      }
+    }
+    if (found.length === 0) found.push('#95a5a6'); 
+    return found;
+  }
+
+  function generateGradient(colorArray) {
+    const count = colorArray.length;
+    const slice = 100 / count;
+    let gradient = 'conic-gradient(';
+    colorArray.forEach((color, index) => {
+      const start = index * slice;
+      const end = (index + 1) * slice;
+      gradient += `${color} ${start}% ${end}%`;
+      if (index < count - 1) gradient += ', ';
+    });
+    gradient += ')';
+    return gradient;
+  }
+
+  // Leaflet initialization
+  const map = L.map('map', { scrollWheelZoom: false }).setView([30, 0], 2);
+  
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+    maxZoom: 16
+  }).addTo(map);
+
+  let markerLayer = L.layerGroup().addTo(map);
+
+  function renderMap() {
+    markerLayer.clearLayers();
+    const requireSE = document.getElementById('filter-se').checked;
+
+    rawData.forEach(study => {
+      if (requireSE && study.combines_SE !== 'Y') return;
+
+      let colors = parseDataTypes(study.social_data);
+      let bgStyle = generateGradient(colors);
+      let ringClass = study.combines_SE === 'Y' ? 'ring-se-combined' : 'ring-none';
+
+      let iconHtml = `
+        <div class="glyph-ring ${ringClass}">
+          <div class="glyph-wrapper" style="background: ${bgStyle};"></div>
+        </div>
+      `;
+
+      let customIcon = L.divIcon({
+        html: iconHtml,
+        className: '',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
+
+      let marker = L.marker([study.lat, study.lng], { icon: customIcon });
+      marker.on('click', () => {
+        populateReference(study);
+      });
+
+      markerLayer.addLayer(marker);
+    });
+  }
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+    if (tabId === 'legend') {
+      document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+      document.getElementById('tab-legend').classList.add('active');
+    } else {
+      document.getElementById('btn-ref').classList.add('active');
+      document.getElementById('tab-references').classList.add('active');
+    }
+  }
+
+  function populateReference(study) {
+    document.getElementById('ref-placeholder').style.display = 'none';
+    document.getElementById('ref-content').style.display = 'block';
+
+    document.getElementById('ref-title').innerText = study.title;
+    document.getElementById('ref-authors').innerText = `${study.authors} (${study.year}) • ${study.journal}`;
+    document.getElementById('ref-social').innerText = study.social_data;
+    document.getElementById('ref-eco').innerText = study.eco_data ? study.eco_data : "None";
+    document.getElementById('ref-loc').innerText = study.loc;
+    document.getElementById('ref-id').innerText = study.id;
+
+    switchTab('references');
+  }
+
+  renderMap();
+</script>
+
+</body>
+</html>
