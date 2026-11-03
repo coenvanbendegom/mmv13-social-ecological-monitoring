@@ -316,17 +316,23 @@
       margin-bottom: 1rem;
     }
 
-    /* Stack on mobile displays */
+   /* Stack on mobile displays with fixed heights */
     @media (max-width: 768px) {
       #interactive-app-wrapper {
         flex-direction: column;
-        height: auto;
+        height: auto !important;
       }
       #map-container {
-        height: 380px;
+        flex: none !important;
+        width: 100% !important;
+        height: 380px !important; /* Explicit pixel height forces map to display */
+        display: block;
       }
       #sidebar {
-        height: 340px;
+        flex: none !important;
+        width: 100% !important;
+        min-width: unset;
+        height: 360px;
         border-left: none;
         border-top: 1px solid var(--border);
       }
