@@ -7,6 +7,10 @@
   
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <!-- MarkerCluster CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 
   <style>
     :root {
@@ -329,7 +333,7 @@
       }
       #map {
         width: 100% !important;
-        height: 380px !important; /* Force explicit pixel height directly on the Leaflet element */
+        height: 380px !important;
       }
       #sidebar {
         flex: none !important;
@@ -340,6 +344,25 @@
         border-top: 1px solid var(--border);
       }
     }
+
+    /* Custom cluster styling matching the poster palette (Global - works on Desktop & Mobile) */
+    .custom-cluster-icon {
+      background: #FFFFFF !important;
+      border: 2.5px solid var(--accent-green) !important;
+      color: var(--accent-green) !important;
+      font-weight: 700;
+      font-size: 13px;
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50% !important;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      transition: transform 0.2s ease;
+    }
+    .custom-cluster-icon:hover {
+      transform: scale(1.15);
+    }
+  </style>
   </style>
 </head>
 <body>
@@ -455,6 +478,9 @@
 
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- MarkerCluster JS -->
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
 <script>
   const rawData = [
     { id: "PMD1", authors: "Bertocchi, Camatti, van der Borg", title: "Tourism Peaks on the Three Peaks", year: 2021, journal: "Rivista Geografica Italiana", social_data: "Vodafone (Mobile Network Operator)", eco_data: "", combines_SE: "N", loc: "Tre Cime, Dolomites, Italy", lat: 46.6186, lng: 12.3027 },
@@ -519,10 +545,24 @@
     maxZoom: 16
   }).addTo(map);
 
-  let markerLayer = L.layerGroup().addTo(map);
+  // Replace L.layerGroup with L.markerClusterGroup:
+  let markerCluster = L.markerClusterGroup({
+    showCoverageOnHover: false,
+    maxClusterRadius: 35, // Adjust this: smaller = points stay individual longer; larger = merges sooner
+    iconCreateFunction: function(cluster) {
+      const count = cluster.getChildCount();
+      return L.divIcon({
+        html: `<div>${count}</div>`,
+        className: 'custom-cluster-icon',
+        iconSize: L.point(34, 34)
+      });
+    }
+  });
+
+  map.addLayer(markerCluster);
 
   function renderMap() {
-    markerLayer.clearLayers();
+    markerCluster.clearLayers();
     const requireSE = document.getElementById('filter-se').checked;
 
     rawData.forEach(study => {
@@ -550,10 +590,9 @@
         populateReference(study);
       });
 
-      markerLayer.addLayer(marker);
+      markerCluster.addLayer(marker);
     });
   }
-
   function switchTab(tabId) {
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
