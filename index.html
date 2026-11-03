@@ -316,24 +316,27 @@
       margin-bottom: 1rem;
     }
 
-   /* Stack on mobile displays with fixed heights */
+  /* Mobile responsive fix */
     @media (max-width: 768px) {
       #interactive-app-wrapper {
-        flex-direction: column;
+        flex-direction: column !important;
         height: auto !important;
       }
       #map-container {
         flex: none !important;
         width: 100% !important;
-        height: 380px !important; /* Explicit pixel height forces map to display */
-        display: block;
+        height: 380px !important;
+      }
+      #map {
+        width: 100% !important;
+        height: 380px !important; /* Force explicit pixel height directly on the Leaflet element */
       }
       #sidebar {
         flex: none !important;
         width: 100% !important;
-        min-width: unset;
-        height: 360px;
-        border-left: none;
+        min-width: 0 !important;
+        height: 360px !important;
+        border-left: none !important;
         border-top: 1px solid var(--border);
       }
     }
